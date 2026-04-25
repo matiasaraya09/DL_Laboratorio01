@@ -1,0 +1,16 @@
+name: lab_stacking
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+    - numpy==1.26.4
+    - pandas==2.2.0
+    - scikit-learn==1.4.0
+    - matplotlib==3.8.2
+    - seaborn==0.13.2
+    - imbalanced-learn==0.12.0
+    - pyreadstat==1.2.6
+    - jupyter
