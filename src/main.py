@@ -15,11 +15,13 @@ from bagging_model import get_bagging_model
 from boosting_model import get_boosting_model
 from stacking_model import get_stacking_model
 from evaluation import evaluate_model
+from exploracion import evaluar_codificaciones_gds
 
 from visualization import (
     plot_gds_distributions_comparative, 
     plot_model_comparison,
-    plot_confusion_matrices
+    plot_confusion_matrices,
+    plot_target_class_frequencies
 )
 
 warnings.filterwarnings('ignore', category=FutureWarning)
@@ -55,6 +57,14 @@ if __name__ == "__main__":
         os.makedirs(carpeta_salida)
         
     df_raw = load_sav_data(ruta_datos)
+
+    print("\n" + "-"*50)
+    print(" ANÁLISIS EXPLORATORIO INICIAL ")
+    print("-"*50)
+    
+    evaluar_codificaciones_gds(df_raw, output_dir=carpeta_salida)
+    
+    plot_target_class_frequencies(df_raw, target_column='GDS_R3', output_dir=carpeta_salida)
     
     plot_gds_distributions_comparative(df_raw, output_dir=carpeta_salida)
     
