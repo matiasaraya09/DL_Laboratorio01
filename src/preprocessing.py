@@ -1,7 +1,6 @@
-#preprocesamiento de Datos
 import pandas as pd
 
-def get_features_and_target(df, target_column='GDS_R3'):
+def get_features_and_target(df, target_column):
     print(f"\n-Preparando datos")
     print(f"Columna objetivo seleccionada: '{target_column}'")
     

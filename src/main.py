@@ -1,4 +1,3 @@
-#main.py
 import os
 import warnings
 import pandas as pd
@@ -38,50 +37,25 @@ def demostracion_probabilidades_bayes(X, y):
     nb.fit(X_train, y_train)
     
     y_prob = nb.predict_proba(X_test[:2])
-    y_pred = nb.predict(X_test[:2])
-    
-    y_test_vals = y_test.values if hasattr(y_test, 'values') else y_test
-    
-    for i in range(2):
-        print(f"Paciente {i+1}:")
-        probs_formateadas = [round(p, 4) for p in y_prob[i]]
-        print(f"  - Probabilidades por clase: {probs_formateadas}")
-        print(f"  - Clase predicha por Bayes: {y_pred[i]}")
-        print(f"  - Clase real del paciente: {y_test_vals[i]}")
+    print(f"Probabilidades de las 2 primeras muestras de prueba:\n{y_prob}")
 
 if __name__ == "__main__":
-    ruta_datos = "../data/raw/15 atributos R0-R5.sav"
-    carpeta_salida = "../data/outputs"
+    ruta_archivo = "../data/raw/15 atributos R0-R5.sav"
+    datos = load_sav_data(ruta_archivo)
     
-    if not os.path.exists(carpeta_salida):
-        os.makedirs(carpeta_salida)
-        
-    df_raw = load_sav_data(ruta_datos)
-
-    print("\n" + "-"*50)
-    print(" ANÁLISIS EXPLORATORIO INICIAL ")
-    print("-"*50)
+    mejor_variable = evaluar_codificaciones_gds(datos)
+    mejor_modelo = ""
     
-    evaluar_codificaciones_gds(df_raw, output_dir=carpeta_salida)
-    
-    plot_target_class_frequencies(df_raw, target_column='GDS_R3', output_dir=carpeta_salida)
-    
-    plot_gds_distributions_comparative(df_raw, output_dir=carpeta_salida)
-    
-    columnas_gds = [col for col in df_raw.columns if col.startswith('GDS')]
+    columnas_gds = [col for col in datos.columns if col.startswith('GDS')]
     
     for target in columnas_gds:
-        print("\n" + "-"*50)
-        print(f"Iniciando experimento y codificación de la siguiente variable: {target} ")
-        print("-"*50)
-        
-        target_output_dir = os.path.join(carpeta_salida, target)
+        target_output_dir = f"../data/outputs/{target}"
         if not os.path.exists(target_output_dir):
             os.makedirs(target_output_dir)
             
-        X, y = get_features_and_target(df_raw, target_column=target)
+        X, y = get_features_and_target(datos, target_column=target)
         
-        if target == columnas_gds[0]:
+        if target == mejor_variable:
             demostracion_probabilidades_bayes(X, y)
         
         modelos = {
@@ -108,6 +82,15 @@ if __name__ == "__main__":
                     print(f"  - {metrica} generada.")
                 else:
                     print(f"  - {metrica}: {valor:.4f}")
+
+        if target == mejor_variable:
+            mejor_f1 = -1
+            for nombre_mod, metricas_mod in resultados_totales.items():
+                for k, v in metricas_mod.items():
+                    if 'F1' in k.upper() and k != 'Matriz de Confusion':
+                        if v > mejor_f1:
+                            mejor_f1 = v
+                            mejor_modelo = nombre_mod
         
         print(f"\nGenerando gráficos para {target} en: {target_output_dir}")
         plot_confusion_matrices(resultados_totales, output_dir=target_output_dir)
@@ -115,10 +98,8 @@ if __name__ == "__main__":
         try:
             df_resultados = pd.DataFrame(resultados_totales).T
             df_resultados_num = df_resultados.drop(columns=['Matriz de Confusion'])
-            plot_model_comparison(df_resultados_num, output_dir=target_output_dir)
+            pass
         except Exception as e:
-            pass 
-            
-    print("\n" + "-"*50)
-    print("Fin del Lab01")
-    print("-"*50)
+            print(f"No se pudo generar la comparacion de modelos para {target}: {e}")
+
+    print(f"\nLa mejor variable fue {mejor_variable} y el mejor modelo fue {mejor_modelo}")
